@@ -1,0 +1,7 @@
+{
+  "openai_api_key": "YOUR_API_KEY",
+  "model": "gpt-5",
+  "temperature": 0.2,
+  "max_tokens": 3000,
+  "environment": "dev"
+}
