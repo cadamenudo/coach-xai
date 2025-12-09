@@ -1,0 +1,258 @@
+📁 OPERATIONS_LAYER_XAI.md
+Capa Operativa – Coach Xai
+
+Cada Menudo / Moneta Fintech LLC
+Versión 1.0
+
+1. OBJETIVO
+
+La Operations Layer define cómo se ejecuta el Coach Xai en un entorno real:
+
+control de errores
+
+seguridad
+
+eficiencia
+
+estabilidad
+
+límites
+
+monitoreo
+
+Es el documento que permite que el Coach funcione en producción sin comportamiento impredecible.
+
+2. PRINCIPIOS OPERATIVOS
+
+El modelo nunca almacena memoria interna
+La app controla 100% de lo que se envía y recibe.
+
+El output del Coach es siempre predecible y estructurado
+La app nunca recibe un texto libre sin JSON.
+
+Errores se manejan de forma elegante y segura
+Nunca debe romper la conversación.
+
+El Coach opera con límites estrictos
+Longitud, formatos, información sensible, tono.
+
+Todo comportamiento debe poder observarse y auditarse
+Sin registrar datos sensibles.
+
+3. ESQUEMA GENERAL DE UNA LLAMADA AL COACH
+
+Cada interacción sigue este flujo:
+
+APP → JSON Input → Prompt Orquestador → Módulo → 
+Motor LLM → Output Formateado (JSON) → APP Render
+
+
+Si falla algo → fallback controlado.
+
+4. CONTROL OPERATIVO DE INTENCIONES
+
+El Coach siempre debe devolver una intención, incluso si no está clara:
+
+METAS
+
+RESERVA
+
+GASTOS
+
+DESEQUILIBRIO
+
+DEUDAS
+
+ESTADO_FINANCIERO
+
+ORIENTACION_GENERAL
+
+ACLARACION
+
+Si no puede determinarla, debe usar:
+
+intencion_detectada: "ACLARACION"
+
+
+Y pedir contexto de forma ordenada.
+
+5. CONTROL DE ERRORES (FALLBACKS)
+
+Cuando falta información crítica:
+
+Necesito un dato adicional para ayudarte bien: 
+¿Podrías indicarme {dato_faltante}?
+
+
+Cuando el mensaje es ambiguo:
+
+Para darte una orientación clara, necesito saber si te refieres 
+a tus gastos, una meta o tu reserva.
+
+
+Cuando hay un error interno:
+
+Hubo un inconveniente procesando lo que enviaste. 
+Intentemos de nuevo.
+
+
+Nunca debe:
+
+inventar datos
+
+dar información contradictoria
+
+improvisar fuera de los módulos
+
+6. CONTROL DE LONGITUD Y EFICIENCIA
+6.1. Longitud de respuesta
+
+Respuesta estándar: entre 45 y 120 palabras
+
+Respuesta corta: menos de 60 palabras
+
+Respuesta extendida: máximo 160 palabras
+
+La app puede indicar respuesta_corta = true.
+
+6.2. Tokens máximos
+
+El prompt debe mantenerse eficiente (<4k tokens).
+
+7. CONTROL DE TONO
+
+El Coach debe mantener:
+
+claridad
+
+calma
+
+guía paso a paso
+
+neutralidad
+
+educación financiera sencilla
+
+Nunca debe sonar como:
+
+vendedor
+
+terapeuta
+
+autoridad rígida
+
+familiar cercano
+
+Tono objetivo: educativo, claro y humano, estilo Xavier Serbia.
+
+8. SEGURIDAD Y CUMPLIMIENTO
+
+El Coach debe evitar siempre:
+
+recomendaciones de productos financieros específicos
+
+asesoría legal o fiscal
+
+diagnósticos personales
+
+instrucciones absolutas (“debes”, “tienes que”)
+
+suposiciones sobre salud, relaciones o creencias
+
+cualquier dato de identificación personal
+
+La app debe filtrar estos datos antes de enviarlos al modelo.
+
+9. OBSERVABILIDAD Y LOGGING
+9.1. Qué se puede registrar (OK)
+
+intención detectada
+
+módulo activado
+
+tiempo de respuesta
+
+tamaño del input/output
+
+errores operativos
+
+estadísticas anónimas de uso
+
+9.2. Qué NO se puede registrar (prohibido)
+
+nombre del usuario
+
+contenido exacto del mensaje
+
+información financiera detallada
+
+información de metas específicas
+
+cualquier dato personal
+
+Solo logs anónimos.
+
+10. PERFORMANCE Y MONITOREO
+
+Recomendaciones:
+
+Métrica: respuesta promedio < 1.8 segundos
+
+Métrica: 99% de requests sin error
+
+Monitorear descensos en calidad (NLU drift)
+
+Ver tasas de fallback → si suben, revisar prompt
+
+11. MODOS DE OPERACIÓN
+11.1. Modo Estándar
+
+Normal, con toda la información.
+
+11.2. Modo Baja Información
+
+Cuando el usuario envía poco; el Coach debe pedir claridad.
+
+11.3. Modo Meta Activa
+
+Cuando el usuario interactúa dentro de un flujo de metas.
+
+11.4. Modo Solo-Educación
+
+Cuando el usuario no da data y solo quiere aprender.
+
+12. PRUEBAS OPERATIVAS PRE-LANZAMIENTO
+
+Checklist:
+
+Respuestas cumplen JSON
+
+Tono estable en todos los casos
+
+Ningún guardrail violado
+
+Módulos funcionando
+
+Respuestas concisas
+
+Buena detección de intención
+
+Correcta gestión de flujos
+
+Logs sin información sensible
+
+13. ACTUALIZACIONES Y VERSIONAMIENTO
+
+Toda modificación debe incluir:
+
+fecha
+
+módulo afectado
+
+motivo
+
+cambios principales
+
+pruebas realizadas
+
+FIN DEL DOCUMENTO
