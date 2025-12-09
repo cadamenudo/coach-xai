@@ -227,31 +227,51 @@
       chatBody.scrollTop = chatBody.scrollHeight;
     }
 
-    function mockCoachXai(userMessage) {
-      const text = userMessage.toLowerCase();
-      let foco = "tu situación con el dinero";
-      if (text.includes("deuda") || text.includes("tarjeta")) {
-        foco = "tus deudas y pagos mensuales";
-      } else if (text.includes("reserva") || text.includes("emergencia")) {
-        foco = "tu reserva de emergencia y liquidez";
-      } else if (text.includes("casa") || text.includes("propiedad")) {
-        foco = "tu meta de comprar casa";
-      } else if (text.includes("retiro") || text.includes("jubil") || text.includes("retirarme")) {
-        foco = "tu meta de retiro";
-      } else if (text.includes("gasto") || text.includes("gastos")) {
-        foco = "tus gastos del mes";
-      }
+function mockCoachXai(userMessage) {
+  // Normalizar texto
+  const raw = userMessage.trim();
+  const text = raw.toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, ""); // quita acentos
 
-      return (
-        "Mi gente, gracias por abrir este tema.\n\n" +
-        "Lo que me estás contando apunta a que ahora mismo el foco está en " + foco + ". " +
-        "Vamos por partes: primero necesitamos entender cómo se está moviendo tu dinero mes a mes, " +
-        "para separar lo esencial de lo que se puede ajustar poco a poco.\n\n" +
-        "Un paso pequeño que podrías dar esta semana es elegir una sola categoría y mirar cuánto se está yendo ahí. " +
-        "Con esa claridad, el próximo paso será decidir cuánto quieres recuperar para acercarte a tus metas.\n\n" +
-        "Tú puedes con esto, paso a paso. 💪"
-      );
-    }
+  // 1) Detectar si es solo un saludo corto
+  const isShort = text.length <= 40;
+  const isGreeting = /\b(hola|buenas|hey|saludos|que tal)\b/.test(text);
+
+  if (isGreeting && isShort) {
+    return (
+      "Mi gente, qué bueno verte por aquí. 👋\n\n" +
+      "Soy Coach Xai y estoy para ayudarte con tu dinero, paso a paso.\n\n" +
+      "Cuéntame: ¿qué es lo que más te preocupa ahora mismo? ¿Deudas, gastos, ahorro o metas?"
+    );
+  }
+
+  // 2) Lógica actual para mensajes “serios”
+  let foco = "tu situación con el dinero";
+
+  if (text.includes("deuda") || text.includes("tarjeta")) {
+    foco = "tus deudas y pagos mensuales";
+  } else if (text.includes("reserva") || text.includes("emergencia")) {
+    foco = "tu reserva de emergencia y tu liquidez";
+  } else if (text.includes("casa") || text.includes("propiedad")) {
+    foco = "tu meta de comprar casa";
+  } else if (text.includes("retiro") || text.includes("jubil")) {
+    foco = "tu meta de retiro";
+  } else if (text.includes("gasto") || text.includes("gastos")) {
+    foco = "tus gastos del mes";
+  }
+
+  return (
+    "Mi gente, gracias por abrir este tema.\n\n" +
+    "Lo que me estás contando apunta a que ahora mismo el foco está en " + foco + ". " +
+    "Vamos por partes: primero necesitamos entender cómo se está moviendo tu dinero mes a mes, " +
+    "para separar lo esencial de lo que se puede ajustar poco a poco.\n\n" +
+    "Un paso pequeño que podrías dar esta semana es elegir una sola categoría y mirar cuánto se está yendo ahí. " +
+    "Con esa claridad, el próximo paso será decidir cuánto quieres recuperar para acercarte a tus metas.\n\n" +
+    "Tú puedes con esto, paso a paso. 💪"
+  );
+}
+
 
     // 🔌 Aquí luego conectas con la API real de Coach Xai
     async function callCoachXaiAPI(userMessage) {
