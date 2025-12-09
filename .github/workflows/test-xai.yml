@@ -1,1 +1,17 @@
+name: Validate Xai Repo
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Validate JSON syntax
+        run: |
+          find tests/cases -name "*.json" -print0 | xargs -0 -I {} python3 -m json.tool {}
 
