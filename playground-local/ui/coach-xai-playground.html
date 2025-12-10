@@ -198,11 +198,15 @@
       </button>
     </form>
   </div>
+
 <script>
   const chatBody = document.getElementById("chat-body");
   const chatForm = document.getElementById("chat-form");
   const chatInput = document.getElementById("chat-input");
   const sendBtn = document.getElementById("send-btn");
+
+  // 🧠 memoria conceptual simple
+  let lastActiveModule = null;
 
   function appendMessage(text, role) {
     const meta = document.createElement("div");
@@ -296,7 +300,7 @@
     return [...new Set(modules)];
   }
 
-  // MOCK AFINADO 2.0 – devuelve { reply, modules, estadio }
+  // MOCK AFINADO 3.0 – devuelve { reply, modules, estadio }
   function mockCoachXai(userMessage) {
     const raw = userMessage.trim();
     const text = raw.toLowerCase()
@@ -304,6 +308,11 @@
       .replace(/[\u0300-\u036f]/g, "");
 
     const modules = detectarModulos(text);
+
+    // Actualiza módulo activo si hay uno nuevo
+    if (modules && modules.length > 0) {
+      lastActiveModule = modules[0]; // dominante
+    }
 
     function pick(arr) {
       return arr[Math.floor(Math.random() * arr.length)];
@@ -510,7 +519,7 @@
       estadio = "acumular";
     }
 
-    // 6) RESPUESTA ADAPTADA AL FOCO + ESTADIO
+    // 6) RESPUESA ADAPTADA AL FOCO + ESTADIO
     if (foco) {
       const intro = pick([
         "Gracias por compartir esto.",
@@ -565,6 +574,201 @@
       };
     }
 
+    // ---------------------------------------------
+    // MEMORIA SIMPLE – RESERVA_EMERGENCIA_XAI
+    // ---------------------------------------------
+    if (lastActiveModule === "RESERVA_EMERGENCIA_XAI") {
+      if (/\b(0|1|2|3|4|5|6|[0-9]+)\s*mes/.test(text) || text === "0" || text === "1" || text === "2") {
+
+        const meses = text.match(/\d+/) ? parseInt(text.match(/\d+/)[0]) : null;
+
+        if (meses === 0) {
+          return {
+            reply:
+              "Gracias por compartirlo. Empezar desde cero es más común de lo que crees.\n\n" +
+              "El primer tramo clave es llegar a **1 mes de gastos esenciales**. " +
+              "Podemos ver juntos qué categoría te permitiría recuperar un poco cada mes.\n\n" +
+              "¿Cómo sientes hoy tus gastos esenciales: muy ajustados, manejables o sin revisar?",
+            modules: ["RESERVA_EMERGENCIA_XAI"],
+            estadio: "asegurar"
+          };
+        }
+
+        if (meses === 1) {
+          return {
+            reply:
+              "Perfecto, ya tienes **1 mes de reserva**. Ese es un buen primer paso. 🙌\n\n" +
+              "El siguiente tramo suele ser apuntar a **2–3 meses**, dependiendo de tu estabilidad laboral y tus responsabilidades.\n\n" +
+              "¿Sientes que podrías ajustar alguna categoría para avanzar hacia ese segundo mes?",
+            modules: ["RESERVA_EMERGENCIA_XAI"],
+            estadio: "asegurar"
+          };
+        }
+
+        if (meses >= 2 && meses <= 5) {
+          return {
+            reply:
+              `Muy bien, tienes **${meses} meses de reserva**. Eso ya te da buena estabilidad. 👍\n\n` +
+              "Si te interesa, podemos explorar cómo consolidar tu reserva y empezar a trabajar metas de ahorro más grandes.\n\n" +
+              "¿Quieres avanzar hacia tus metas o reforzar primero este fondo?",
+            modules: ["RESERVA_EMERGENCIA_XAI"],
+            estadio: "asegurar"
+          };
+        }
+
+        if (meses >= 6) {
+          return {
+            reply:
+              `Excelente, tener **${meses} meses de reserva** te pone en una posición muy sólida. 💪\n\n` +
+              "Desde este punto el enfoque suele pasar a metas grandes: ahorro anual, invertir a largo plazo, o metas específicas como viaje, casa o retiro.\n\n" +
+              "¿Te gustaría trabajar en alguna meta concreta?",
+            modules: ["RESERVA_EMERGENCIA_XAI"],
+            estadio: "acumular"
+          };
+        }
+      }
+    }
+
+    // ---------------------------------------------
+    // MEMORIA SIMPLE – METAS_FINANCIERAS_XAI
+    // ---------------------------------------------
+    if (lastActiveModule === "METAS_FINANCIERAS_XAI") {
+      const isVeryShort = text.split(/\s+/).length <= 6;
+
+      if (isVeryShort && !text.includes("gasto") && !text.includes("deuda")) {
+        return {
+          reply:
+            "Perfecto, tomemos eso como tu meta principal por ahora. 🎯\n\n" +
+            "Lo siguiente es aterrizarla un poco: podemos trabajar el plazo (por ejemplo, 6, 12 o 18 meses) " +
+            "y cuánto podrías destinar cada mes, aunque sea un monto pequeño.\n\n" +
+            "¿Ves esta meta más para los próximos 12 meses o para un plazo más largo?",
+          modules: ["METAS_FINANCIERAS_XAI"],
+          estadio: "acumular"
+        };
+      }
+    }
+
+    // ---------------------------------------------
+    // MEMORIA SIMPLE – GASTOS_DESVIACIONES_XAI
+    // ---------------------------------------------
+    if (lastActiveModule === "GASTOS_DESVIACIONES_XAI") {
+      const isShort = text.split(/\s+/).length <= 5;
+
+      if (isShort) {
+        return {
+          reply:
+            `Bien, enfoquémonos entonces en **${raw}**.\n\n` +
+            "Un buen primer paso es anotar, durante una o dos semanas, cuánto se va ahí sin juzgar. " +
+            "Solo observar. Con esa información podemos decidir cuánto quieres recuperar de esa categoría.\n\n" +
+            "¿Te ves registrando solo esa categoría por unos días para empezar?",
+          modules: ["GASTOS_DESVIACIONES_XAI"],
+          estadio: "sobreviviendo"
+        };
+      }
+    }
+
+    // ---------------------------------------------
+    // MEMORIA SIMPLE – DEUDAS_XAI
+    // ---------------------------------------------
+    if (lastActiveModule === "DEUDAS_XAI") {
+      if (text.includes("tarjeta") || text.includes("tarjetas")) {
+        return {
+          reply:
+            "Gracias, eso ayuda. Si el mayor peso está en tarjetas, suele significar intereses más altos.\n\n" +
+            "El siguiente paso sería saber, aunque sea aproximado, cuánto estás pagando al mes entre todas tus tarjetas.\n\n" +
+            "¿Tienes una idea de ese pago mensual total (aunque sea aproximada)?",
+          modules: ["DEUDAS_XAI"],
+          estadio: "asegurar"
+        };
+      }
+
+      if (text.includes("prestamo") || text.includes("préstamo")) {
+        return {
+          reply:
+            "Perfecto, entonces el foco está más en préstamos.\n\n" +
+            "Lo siguiente sería ver cuánto suman tus pagos mensuales de todos los préstamos, " +
+            "para entender qué parte de tu ingreso se va ahí.\n\n" +
+            "¿Sabes aproximadamente cuánto pagas al mes entre todos tus préstamos?",
+          modules: ["DEUDAS_XAI"],
+          estadio: "asegurar"
+        };
+      }
+
+      const pagoMatch = raw.match(/\$?\s*([0-9][0-9.,]*)/);
+      if (pagoMatch) {
+        const pagoTexto = pagoMatch[1];
+
+        return {
+          reply:
+            `Gracias, con eso ya tenemos una referencia: alrededor de **${pagoTexto} al mes** en deudas.\n\n` +
+            "Con ese dato, el siguiente paso sería ver qué porcentaje de tu ingreso representa, " +
+            "para entender si está muy pesado o manejable.\n\n" +
+            "¿Te gustaría que lo trabajemos más adelante con tus números completos en la app?",
+          modules: ["DEUDAS_XAI"],
+          estadio: "asegurar"
+        };
+      }
+    }
+
+    // ---------------------------------------------
+    // MEMORIA SIMPLE – SUPERAVIT_DEFICIT_XAI
+    // ---------------------------------------------
+    if (lastActiveModule === "SUPERAVIT_DEFICIT_XAI") {
+      const textoSimple = text.replace(/\s+/g, " ");
+
+      if (textoSimple.includes("en rojo") || textoSimple.includes("rojo") || textoSimple.includes("no me alcanza")) {
+        return {
+          reply:
+            "Gracias por decirlo tal cual. Estar casi siempre en rojo desgasta mucho.\n\n" +
+            "Aquí la prioridad no es ahorrar todavía, sino cerrar poco a poco ese hueco. " +
+            "Y eso casi siempre empieza por una sola categoría donde podamos recuperar algo.\n\n" +
+            "Si tuvieras que señalar una categoría que se te va de las manos, ¿cuál sería?",
+          modules: ["SUPERAVIT_DEFICIT_XAI"],
+          estadio: "sobreviviendo"
+        };
+      }
+
+      if (textoSimple.includes("me sobra") || textoSimple.includes("superavit") || textoSimple.includes("superávit")) {
+        return {
+          reply:
+            "Muy bien, tener algo de superávit es una base importante. 👏\n\n" +
+            "El siguiente paso sería decidir qué parte fijas como ahorro mínimo y qué parte queda flexible.\n\n" +
+            "¿Te gustaría destinar un porcentaje fijo de ese superávit a reserva o metas?",
+          modules: ["SUPERAVIT_DEFICIT_XAI"],
+          estadio: "asegurar"
+        };
+      }
+    }
+
+    // ---------------------------------------------
+    // MEMORIA SIMPLE – ESTADO_FINANCIERO_XAI
+    // ---------------------------------------------
+    if (lastActiveModule === "ESTADO_FINANCIERO_XAI") {
+      const isShortEF = text.split(/\s+/).length <= 6;
+
+      if (isShortEF && (text.includes("deuda") || text.includes("pasivo"))) {
+        return {
+          reply:
+            "Entiendo, lo que más te preocupa del estado financiero es el lado de las deudas/pasivos.\n\n" +
+            "Una forma sencilla de verlo es: activos (lo que tienes) vs. pasivos (lo que debes) y tu patrimonio neto.\n\n" +
+            "¿Has llegado a calcular alguna vez tu patrimonio neto (activos menos deudas), aunque sea por encima?",
+          modules: ["ESTADO_FINANCIERO_XAI"],
+          estadio: "asegurar"
+        };
+      }
+
+      if (isShortEF && (text.includes("activo") || text.includes("propiedad") || text.includes("casa"))) {
+        return {
+          reply:
+            "Perfecto, entonces tu foco está en el lado de activos/propiedades.\n\n" +
+            "Ver el estado financiero con calma ayuda a decidir si es momento de acumular más liquidez, bajar deuda o seguir creciendo activos.\n\n" +
+            "¿Sientes que hoy estás en modo más defensivo (proteger lo que tienes) o ofensivo (crecer)?",
+          modules: ["ESTADO_FINANCIERO_XAI"],
+          estadio: "acumular"
+        };
+      }
+    }
+
     // 7) RESPUESTA GENERAL
     const generales = [
       "Gracias por escribirme.",
@@ -605,6 +809,9 @@
       if (result.modules && result.modules.length) {
         infoParts.push("Módulos activos (mock): " + result.modules.join(", "));
       }
+      if (lastActiveModule && !infoParts.join(" ").includes(lastActiveModule)) {
+        infoParts.push("Último módulo dominante: " + lastActiveModule);
+      }
 
       if (infoParts.length) {
         appendInfo(infoParts.join(" · "));
@@ -617,4 +824,3 @@
 </script>
 </body>
 </html>
-
