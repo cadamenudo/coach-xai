@@ -1,14 +1,31 @@
 # Playground Local – Coach Xai
 
-Este folder contiene prototipos de interfaz para probar el comportamiento de Coach Xai **en local**, sin exponer el repositorio ni el KB.
+Este folder contiene prototipos de interfaz para probar el comportamiento de Coach Xai **en local**, sin exponer el repositorio ni conectar a APIs externas.
 
-## Cómo usar
+## Estructura
 
-1. Abrir `ui/coach-xai-playground.html` en el navegador (doble clic).
-2. Escribir como si fueras un usuario: ejemplos de deuda, gastos, metas, etc.
-3. Usar `scenarios/` como guía para probar casos tipo:
-   - Sobreviviendo
-   - Asegurar
-   - Acumular
+- `ui/coach-xai-playground.html`  
+  Chat de prueba con un mock de Coach Xai que:
+  - detecta emociones,
+  - distingue entre gastos, deudas, ahorro, ingresos y metas,
+  - simula los estadios “sobreviviendo / asegurar / acumular”.
 
-Nada de este contenido se despliega ni se conecta a APIs reales. Es solo para diseño de tono, flujo y lógica.
+- `scenarios/SCENARIOS_XAI.md`  
+  Banco de escenarios de conversación para probar tono y lógica.
+
+- `notes/NOTES.md`  
+  Bitácora de ajustes, observaciones y pendientes del Coach.
+
+## Cómo usar el playground
+
+1. Abrir `ui/coach-xai-playground.html` con doble clic (se abre en el navegador).
+2. Escribir como si fueras el usuario:
+   - ejemplos de deuda, gastos, ahorro, metas, emociones.
+3. Usar `SCENARIOS_XAI.md` como guía:
+   - copiar un escenario,
+   - pegarlo en el chat,
+   - observar la respuesta del mock.
+4. Registrar ajustes o ideas en `notes/NOTES.md`.
+
+> Nota: Este playground es **solo para diseño de tono y lógica**.  
+> No hace cálculos con datos reales ni se conecta todavía al KB ni a modelos externos.
