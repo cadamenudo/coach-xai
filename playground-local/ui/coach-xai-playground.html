@@ -198,7 +198,6 @@
       </button>
     </form>
   </div>
-
 <script>
   const chatBody = document.getElementById("chat-body");
   const chatForm = document.getElementById("chat-form");
@@ -300,18 +299,30 @@
     return [...new Set(modules)];
   }
 
-  // MOCK AFINADO 3.0 – devuelve { reply, modules, estadio }
+  // MOCK AFINADO – devuelve { reply, modules, estadio }
   function mockCoachXai(userMessage) {
     const raw = userMessage.trim();
     const text = raw.toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "");
 
-    const modules = detectarModulos(text);
+    const detectedModules = detectarModulos(text);
+    let modules = detectedModules.slice();
 
-    // Actualiza módulo activo si hay uno nuevo
-    if (modules && modules.length > 0) {
-      lastActiveModule = modules[0]; // dominante
+    // 🔁 LÓGICA DE TRANSICIÓN SIMPLE ENTRE MÓDULOS
+    // Caso especial: si venimos de RESERVA y el nuevo mensaje menciona "gastos",
+    // lo tratamos como parte de RESERVA (gastos como palanca de la reserva),
+    // no como cambio de tema completo.
+    if (
+      lastActiveModule === "RESERVA_EMERGENCIA_XAI" &&
+      detectedModules.length === 1 &&
+      detectedModules[0] === "GASTOS_DESVIACIONES_XAI"
+    ) {
+      modules = ["RESERVA_EMERGENCIA_XAI", "GASTOS_DESVIACIONES_XAI"];
+      // NO cambiamos lastActiveModule: seguimos en reserva
+    } else if (modules && modules.length > 0) {
+      // Comportamiento normal: si no hay caso especial, actualizamos módulo dominante
+      lastActiveModule = modules[0];
     }
 
     function pick(arr) {
@@ -519,7 +530,7 @@
       estadio = "acumular";
     }
 
-    // 6) RESPUESA ADAPTADA AL FOCO + ESTADIO
+    // 6) RESPUESTA ADAPTADA AL FOCO + ESTADIO
     if (foco) {
       const intro = pick([
         "Gracias por compartir esto.",
@@ -527,7 +538,14 @@
         "Es muy útil que lo digas con esta claridad."
       ]);
 
-      const contexto = `Por lo que comentas, ahora mismo el enfoque principal está en **${foco}**.`;
+      let contexto = `Por lo que comentas, ahora mismo el enfoque principal está en **${foco}**.`;
+
+      // 💡 Conexión especial: si venimos de RESERVA y ahora hablamos de gastos,
+      // lo explicamos como parte de fortalecer la reserva.
+      if (foco === "tus gastos del mes" && lastActiveModule === "RESERVA_EMERGENCIA_XAI") {
+        contexto += " Esto se conecta directamente con tu reserva de emergencia, " +
+          "porque lo que logremos recuperar de gastos puede ir a fortalecer ese fondo.";
+      }
 
       const mensajeEstadio = {
         sobreviviendo:
@@ -541,7 +559,14 @@
       let preguntaCierre = "¿Te parece si empezamos revisando una sola parte de esa área para ver qué se puede ajustar con calma?";
 
       if (foco === "tus gastos del mes") {
-        preguntaCierre = "Si tuvieras que escoger una sola categoría de gasto para revisar esta semana, ¿cuál sería?";
+        if (lastActiveModule === "RESERVA_EMERGENCIA_XAI") {
+          preguntaCierre =
+            "Si queremos fortalecer tu reserva, tiene sentido empezar por una sola categoría de gasto que podamos reducir un poco cada mes. " +
+            "¿Cuál crees que podría ser esa categoría?";
+        } else {
+          preguntaCierre =
+            "Si tuvieras que escoger una sola categoría de gasto para revisar esta semana, ¿cuál sería?";
+        }
       } else if (foco === "tus deudas y pagos mensuales") {
         preguntaCierre = "¿Sabes aproximadamente cuánto estás pagando al mes entre todas tus deudas?";
       } else if (foco === "tu liquidez y tu fondo de emergencia") {
@@ -574,72 +599,71 @@
       };
     }
 
-// ---------------------------------------------
-// MEMORIA SIMPLE – RESERVA_EMERGENCIA_XAI
-// ---------------------------------------------
-if (lastActiveModule === "RESERVA_EMERGENCIA_XAI") {
-  const texto = text.replace(/\s+/g, " ").trim();
+    // ---------------------------------------------
+    // MEMORIA SIMPLE – RESERVA_EMERGENCIA_XAI
+    // ---------------------------------------------
+    if (lastActiveModule === "RESERVA_EMERGENCIA_XAI") {
+      const texto = text.replace(/\s+/g, " ").trim();
 
-  // Detectar "1 mes", "2 meses", etc. y también "un mes"
-  const matchNumero = texto.match(/\d+/);
-  const contieneUnMes = /(^|\s)(un|1)\s+mes(es)?\b/.test(texto);
+      // Detectar "1 mes", "2 meses", etc. y también "un mes"
+      const matchNumero = texto.match(/\d+/);
+      const contieneUnMes = /(^|\s)(un|1)\s+mes(es)?\b/.test(texto);
 
-  let meses = null;
+      let meses = null;
 
-  if (matchNumero) {
-    meses = parseInt(matchNumero[0]);
-  } else if (contieneUnMes) {
-    meses = 1; // "un mes" => 1
-  }
+      if (matchNumero) {
+        meses = parseInt(matchNumero[0]);
+      } else if (contieneUnMes) {
+        meses = 1; // "un mes" => 1
+      }
 
-  if (meses !== null) {
-    if (meses === 0) {
-      return {
-        reply:
-          "Gracias por compartirlo. Empezar desde cero es más común de lo que crees.\n\n" +
-          "El primer tramo clave es llegar a **1 mes de gastos esenciales**. " +
-          "Podemos ver juntos qué categoría te permitiría recuperar un poco cada mes.\n\n" +
-          "¿Cómo sientes hoy tus gastos esenciales: muy ajustados, manejables o sin revisar?",
-        modules: ["RESERVA_EMERGENCIA_XAI"],
-        estadio: "asegurar"
-      };
+      if (meses !== null) {
+        if (meses === 0) {
+          return {
+            reply:
+              "Gracias por compartirlo. Empezar desde cero es más común de lo que crees.\n\n" +
+              "El primer tramo clave es llegar a **1 mes de gastos esenciales**. " +
+              "Podemos ver juntos qué categoría te permitiría recuperar un poco cada mes.\n\n" +
+              "¿Cómo sientes hoy tus gastos esenciales: muy ajustados, manejables o sin revisar?",
+            modules: ["RESERVA_EMERGENCIA_XAI"],
+            estadio: "asegurar"
+          };
+        }
+
+        if (meses === 1) {
+          return {
+            reply:
+              "Perfecto, ya tienes **1 mes de reserva**. Ese es un buen primer paso. 🙌\n\n" +
+              "El siguiente tramo suele ser apuntar a **2–3 meses**, dependiendo de tu estabilidad laboral y tus responsabilidades.\n\n" +
+              "¿Sientes que podrías ajustar alguna categoría para avanzar hacia ese segundo mes?",
+            modules: ["RESERVA_EMERGENCIA_XAI"],
+            estadio: "asegurar"
+          };
+        }
+
+        if (meses >= 2 && meses <= 5) {
+          return {
+            reply:
+              `Muy bien, tienes **${meses} meses de reserva**. Eso ya te da buena estabilidad. 👍\n\n` +
+              "Si te interesa, podemos explorar cómo consolidar tu reserva y empezar a trabajar metas de ahorro más grandes.\n\n" +
+              "¿Quieres avanzar hacia tus metas o reforzar primero este fondo?",
+            modules: ["RESERVA_EMERGENCIA_XAI"],
+            estadio: "asegurar"
+          };
+        }
+
+        if (meses >= 6) {
+          return {
+            reply:
+              `Excelente, tener **${meses} meses de reserva** te pone en una posición muy sólida. 💪\n\n` +
+              "Desde este punto el enfoque suele pasar a metas grandes: ahorro anual, invertir a largo plazo, o metas específicas como viaje, casa o retiro.\n\n" +
+              "¿Te gustaría trabajar en alguna meta concreta?",
+            modules: ["RESERVA_EMERGENCIA_XAI"],
+            estadio: "acumular"
+          };
+        }
+      }
     }
-
-    if (meses === 1) {
-      return {
-        reply:
-          "Perfecto, ya tienes **1 mes de reserva**. Ese es un buen primer paso. 🙌\n\n" +
-          "El siguiente tramo suele ser apuntar a **2–3 meses**, dependiendo de tu estabilidad laboral y tus responsabilidades.\n\n" +
-          "¿Sientes que podrías ajustar alguna categoría para avanzar hacia ese segundo mes?",
-        modules: ["RESERVA_EMERGENCIA_XAI"],
-        estadio: "asegurar"
-      };
-    }
-
-    if (meses >= 2 && meses <= 5) {
-      return {
-        reply:
-          `Muy bien, tienes **${meses} meses de reserva**. Eso ya te da buena estabilidad. 👍\n\n` +
-          "Si te interesa, podemos explorar cómo consolidar tu reserva y empezar a trabajar metas de ahorro más grandes.\n\n" +
-          "¿Quieres avanzar hacia tus metas o reforzar primero este fondo?",
-        modules: ["RESERVA_EMERGENCIA_XAI"],
-        estadio: "asegurar"
-      };
-    }
-
-    if (meses >= 6) {
-      return {
-        reply:
-          `Excelente, tener **${meses} meses de reserva** te pone en una posición muy sólida. 💪\n\n` +
-          "Desde este punto el enfoque suele pasar a metas grandes: ahorro anual, invertir a largo plazo, o metas específicas como viaje, casa o retiro.\n\n" +
-          "¿Te gustaría trabajar en alguna meta concreta?",
-        modules: ["RESERVA_EMERGENCIA_XAI"],
-        estadio: "acumular"
-      };
-    }
-  }
-}
-
 
     // ---------------------------------------------
     // MEMORIA SIMPLE – METAS_FINANCIERAS_XAI
@@ -664,9 +688,9 @@ if (lastActiveModule === "RESERVA_EMERGENCIA_XAI") {
     // MEMORIA SIMPLE – GASTOS_DESVIACIONES_XAI
     // ---------------------------------------------
     if (lastActiveModule === "GASTOS_DESVIACIONES_XAI") {
-      const isShort = text.split(/\s+/).length <= 5;
+      const isShortG = text.split(/\s+/).length <= 5;
 
-      if (isShort) {
+      if (isShortG) {
         return {
           reply:
             `Bien, enfoquémonos entonces en **${raw}**.\n\n` +
@@ -834,5 +858,6 @@ if (lastActiveModule === "RESERVA_EMERGENCIA_XAI") {
     }, 400);
   });
 </script>
+
 </body>
 </html>
