@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coach Xai – Playground</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f6f7ff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .chat-wrapper {
+      width: 100%;
+      max-width: 860px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 14px 40px rgba(15, 23, 42, 0.18);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(135deg, #3956e8, #7459d9);
+      color: #ffffff;
+    }
+
+    .chat-header-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .chat-header-subtitle {
+      font-size: 0.8rem;
+      opacity: 0.9;
+    }
+
+    .chat-badge {
+      font-size: 0.7rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.2);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .chat-body {
+      padding: 16px;
+      height: 440px;
+      overflow-y: auto;
+      background: #f8fafc;
+    }
+
+    .message {
+      max-width: 80%;
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+
+    .message.user {
+      margin-left: auto;
+      background: #3956e8;
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.coach {
+      margin-right: auto;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      color: #0f172a;
+      border-bottom-left-radius: 4px;
+    }
+
+    .meta {
+      font-size: 0.7rem;
+      opacity: 0.7;
+      margin-bottom: 4px;
+    }
+
+    .meta.user {
+      text-align: right;
+      margin-right: 2px;
+    }
+
+    .meta.coach {
+      text-align: left;
+      margin-left: 2px;
+    }
+
+    .chat-footer {
+      padding: 10px 12px;
+      border-top: 1px solid #e2e8f0;
+      background: #ffffff;
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    .chat-input {
+      flex: 1;
+      border-radius: 999px;
+      border: 1px solid #cbd5f5;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      outline: none;
+      resize: none;
+      min-height: 40px;
+      max-height: 80px;
+      line-height: 1.3;
+    }
+
+    .chat-input:focus {
+      border-color: #3956e8;
+      box-shadow: 0 0 0 1px rgba(57, 86, 232, 0.25);
+    }
+
+    .chat-send-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 18px;
+      background: #3956e8;
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .chat-send-btn:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    .chat-send-btn span.icon {
+      font-size: 1rem;
+      transform: translateY(1px);
+    }
+
+    #stateBox {
+      margin-top: 8px;
+      background: #eef2ff;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      color: #333;
+      white-space: pre-wrap;
+      border: 1px solid #c7d2fe;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="chat-wrapper">
+
+    <header class="chat-header">
+      <div>
+        <div class="chat-header-title">Coach Xai – Playground</div>
+        <div class="chat-header-subtitle">Prueba interna del motor del coach</div>
+      </div>
+      <div class="chat-badge">Demo</div>
+    </header>
+
+    <main id="chat-body" class="chat-body">
+      <div class="meta coach">Coach Xai</div>
+      <div class="message coach">
+        Bienvenida, bienvenido. 👋  
+        Este es un modo demo para probar cómo se comporta el coach.  
+        Escríbeme cómo está tu situación con el dinero o qué te preocupa ahora mismo.
+      </div>
+    </main>
+
+    <form id="chat-form" class="chat-footer">
+      <textarea
+        id="chat-input"
+        class="chat-input"
+        placeholder="Escribe aquí como si fueras el usuario…"
+      ></textarea>
+      <button type="submit" id="send-btn" class="chat-send-btn">
+        <span class="icon">➤</span> Enviar
+      </button>
+    </form>
+
+    <div id="stateBox">Estado interno…</div>
+  </div>
+
+<script>
+/* ---------------------------------------------------------------------
+   🧠 ESTADO INTERNO DEL COACH
+--------------------------------------------------------------------- */
+let coachState = {
+  lastModule: null,
+  activeModule: null,
+  pendingTransition: null, // ← transiciones inteligentes
+  lastUserIntent: null,
+  lastEstadio: null
+};
+
+function updateStateBox() {
+  document.getElementById("stateBox").textContent =
+    JSON.stringify(coachState, null, 2);
+}
+
+/* ---------------------------------------------------------------------
+   🧠 UTILIDADES
+--------------------------------------------------------------------- */
+function normalize(txt) {
+  return txt.toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+/* ---------------------------------------------------------------------
+   🧠 DETECTOR DE MODULOS
+--------------------------------------------------------------------- */
+function detectarModulos(text) {
+  const t = normalize(text);
+  const modules = [];
+
+  if (t.includes("reserva") || t.includes("emergencia") || t.includes("liquidez"))
+    modules.push("RESERVA_EMERGENCIA_XAI");
+
+  if (t.includes("meta") || t.includes("objetivo"))
+    modules.push("METAS_FINANCIERAS_XAI");
+
+  if (t.includes("gasto") || t.includes("suscripcion") || t.includes("desvi"))
+    modules.push("GASTOS_DESVIACIONES_XAI");
+
+  if (t.includes("deuda") || t.includes("tarjeta") || t.includes("prestamo"))
+    modules.push("DEUDAS_XAI");
+
+  if (t.includes("superavit") || t.includes("deficit"))
+    modules.push("SUPERAVIT_DEFICIT_XAI");
+
+  return [...new Set(modules)];
+}
+
+/* ---------------------------------------------------------------------
+   🧠 MOTOR PRINCIPAL (mock refinado + transiciones)
+--------------------------------------------------------------------- */
+function mockMotorXai(msg) {
+  const text = normalize(msg);
+  const detected = detectarModulos(text);
+
+  let newModule = detected.length ? detected[0] : null;
+
+  // TRANSICIÓN INTELIGENTE
+  if (coachState.activeModule && newModule && newModule !== coachState.activeModule) {
+    coachState.pendingTransition = {
+      from: coachState.activeModule,
+      to: newModule
+    };
+
+    return {
+      reply:
+        `Puedo ayudarte con eso.\n\n` +
+        `¿Quieres cambiar de tema?\n` +
+        `• Ahora mismo estamos en **${coachState.activeModule}**\n` +
+        `• Estás pidiendo ir a **${newModule}**\n\n` +
+        `¿Confirmas que quieres cambiar?`,
+      module: coachState.activeModule,
+      estadio: coachState.lastEstadio
+    };
+  }
+
+  // Si el usuario confirma transición
+  if (coachState.pendingTransition && (text.includes("si") || text.includes("dale") || text.includes("vamos"))) {
+    const t = coachState.pendingTransition.to;
+    coachState.activeModule = t;
+    coachState.pendingTransition = null;
+
+    return {
+      reply: `Perfecto, cambiamos al módulo **${t}**.\n\nCuéntame, ¿qué es lo primero que quieres revisar aquí?`,
+      module: t
+    };
+  }
+
+  // Sin transición → activamos módulo detectado
+  if (newModule) {
+    coachState.activeModule = newModule;
+  }
+
+  // REGLA SIMPLE DE RESPUESTA (mock)
+  if (coachState.activeModule === "RESERVA_EMERGENCIA_XAI") {
+    if (/\d+/.test(text)) {
+      return {
+        reply: `Perfecto, tienes **${text} meses** de reserva.\n` +
+               `¿Quieres avanzar al siguiente tramo o ver cómo ajustarla?`,
+        module: "RESERVA_EMERGENCIA_XAI"
+      };
+    }
+    return {
+      reply: `Hablemos de tu reserva.\n` +
+             `¿Cuántos meses podrías cubrir si mañana se detuviera tu ingreso?`,
+      module: "RESERVA_EMERGENCIA_XAI"
+    };
+  }
+
+  if (coachState.activeModule === "DEUDAS_XAI") {
+    return {
+      reply: `Vamos con tus deudas.\n` +
+             `¿Sabes cuánto estás pagando al mes en total?`,
+      module: "DEUDAS_XAI"
+    };
+  }
+
+  if (!coachState.activeModule) {
+    return {
+      reply:
+        "Gracias por escribirme.\n" +
+        "¿Te preocupa más gastos, deudas, ahorro o tu reserva?",
+      module: null
+    };
+  }
+
+  return {
+    reply:
+      "Gracias por compartirme eso. ¿Quieres que sigamos aquí o cambiamos de tema?",
+    module: coachState.activeModule
+  };
+}
+
+/* ---------------------------------------------------------------------
+   INTERACCIÓN CHAT
+--------------------------------------------------------------------- */
+function appendMessage(text, role) {
+  const meta = document.createElement("div");
+  meta.className = "meta " + role;
+  meta.textContent = role === "user" ? "Usuario" : "Coach Xai";
+
+  const msg = document.createElement("div");
+  msg.className = "message " + role;
+  msg.textContent = text;
+
+  document.getElementById("chat-body").appendChild(meta);
+  document.getElementById("chat-body").appendChild(msg);
+  document.getElementById("chat-body").scrollTop =
+    document.getElementById("chat-body").scrollHeight;
+}
+
+document.getElementById("chat-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const text = document.getElementById("chat-input").value.trim();
+  if (!text) return;
+
+  appendMessage(text, "user");
+  document.getElementById("chat-input").value = "";
+
+  const result = mockMotorXai(text);
+  appendMessage(result.reply, "coach");
+
+  coachState.lastModule = result.module;
+  coachState.lastEstadio = result.estadio || coachState.lastEstadio;
+
+  updateStateBox();
+});
+</script>
+
+</body>
+</html>
