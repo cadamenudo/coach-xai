@@ -1,11 +1,14 @@
-© 2025 Moneta Fintech LLC. All rights reserved.
+# Playground Local – Coach Xai
 
-This repository contains proprietary and confidential material belonging to Moneta Fintech LLC.
-Unauthorized copying, distribution, modification, or disclosure of any files, documents,
-logic, prompts, or internal methodologies contained in this repository is strictly prohibited.
+Este folder contiene prototipos de interfaz para probar el comportamiento de Coach Xai **en local**, sin exponer el repositorio ni el KB.
 
-Access to this repository is limited to authorized personnel only.
-No part of this project may be reproduced or used without explicit written permission
-from Moneta Fintech LLC.
+## Cómo usar
 
-This is NOT open-source software.
+1. Abrir `ui/coach-xai-playground.html` en el navegador (doble clic).
+2. Escribir como si fueras un usuario: ejemplos de deuda, gastos, metas, etc.
+3. Usar `scenarios/` como guía para probar casos tipo:
+   - Sobreviviendo
+   - Asegurar
+   - Acumular
+
+Nada de este contenido se despliega ni se conecta a APIs reales. Es solo para diseño de tono, flujo y lógica.
