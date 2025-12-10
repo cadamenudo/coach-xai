@@ -574,60 +574,72 @@
       };
     }
 
-    // ---------------------------------------------
-    // MEMORIA SIMPLE – RESERVA_EMERGENCIA_XAI
-    // ---------------------------------------------
-    if (lastActiveModule === "RESERVA_EMERGENCIA_XAI") {
-      if (/\b(0|1|2|3|4|5|6|[0-9]+)\s*mes/.test(text) || text === "0" || text === "1" || text === "2") {
+// ---------------------------------------------
+// MEMORIA SIMPLE – RESERVA_EMERGENCIA_XAI
+// ---------------------------------------------
+if (lastActiveModule === "RESERVA_EMERGENCIA_XAI") {
+  const texto = text.replace(/\s+/g, " ").trim();
 
-        const meses = text.match(/\d+/) ? parseInt(text.match(/\d+/)[0]) : null;
+  // Detectar "1 mes", "2 meses", etc. y también "un mes"
+  const matchNumero = texto.match(/\d+/);
+  const contieneUnMes = /(^|\s)(un|1)\s+mes(es)?\b/.test(texto);
 
-        if (meses === 0) {
-          return {
-            reply:
-              "Gracias por compartirlo. Empezar desde cero es más común de lo que crees.\n\n" +
-              "El primer tramo clave es llegar a **1 mes de gastos esenciales**. " +
-              "Podemos ver juntos qué categoría te permitiría recuperar un poco cada mes.\n\n" +
-              "¿Cómo sientes hoy tus gastos esenciales: muy ajustados, manejables o sin revisar?",
-            modules: ["RESERVA_EMERGENCIA_XAI"],
-            estadio: "asegurar"
-          };
-        }
+  let meses = null;
 
-        if (meses === 1) {
-          return {
-            reply:
-              "Perfecto, ya tienes **1 mes de reserva**. Ese es un buen primer paso. 🙌\n\n" +
-              "El siguiente tramo suele ser apuntar a **2–3 meses**, dependiendo de tu estabilidad laboral y tus responsabilidades.\n\n" +
-              "¿Sientes que podrías ajustar alguna categoría para avanzar hacia ese segundo mes?",
-            modules: ["RESERVA_EMERGENCIA_XAI"],
-            estadio: "asegurar"
-          };
-        }
+  if (matchNumero) {
+    meses = parseInt(matchNumero[0]);
+  } else if (contieneUnMes) {
+    meses = 1; // "un mes" => 1
+  }
 
-        if (meses >= 2 && meses <= 5) {
-          return {
-            reply:
-              `Muy bien, tienes **${meses} meses de reserva**. Eso ya te da buena estabilidad. 👍\n\n` +
-              "Si te interesa, podemos explorar cómo consolidar tu reserva y empezar a trabajar metas de ahorro más grandes.\n\n" +
-              "¿Quieres avanzar hacia tus metas o reforzar primero este fondo?",
-            modules: ["RESERVA_EMERGENCIA_XAI"],
-            estadio: "asegurar"
-          };
-        }
-
-        if (meses >= 6) {
-          return {
-            reply:
-              `Excelente, tener **${meses} meses de reserva** te pone en una posición muy sólida. 💪\n\n` +
-              "Desde este punto el enfoque suele pasar a metas grandes: ahorro anual, invertir a largo plazo, o metas específicas como viaje, casa o retiro.\n\n" +
-              "¿Te gustaría trabajar en alguna meta concreta?",
-            modules: ["RESERVA_EMERGENCIA_XAI"],
-            estadio: "acumular"
-          };
-        }
-      }
+  if (meses !== null) {
+    if (meses === 0) {
+      return {
+        reply:
+          "Gracias por compartirlo. Empezar desde cero es más común de lo que crees.\n\n" +
+          "El primer tramo clave es llegar a **1 mes de gastos esenciales**. " +
+          "Podemos ver juntos qué categoría te permitiría recuperar un poco cada mes.\n\n" +
+          "¿Cómo sientes hoy tus gastos esenciales: muy ajustados, manejables o sin revisar?",
+        modules: ["RESERVA_EMERGENCIA_XAI"],
+        estadio: "asegurar"
+      };
     }
+
+    if (meses === 1) {
+      return {
+        reply:
+          "Perfecto, ya tienes **1 mes de reserva**. Ese es un buen primer paso. 🙌\n\n" +
+          "El siguiente tramo suele ser apuntar a **2–3 meses**, dependiendo de tu estabilidad laboral y tus responsabilidades.\n\n" +
+          "¿Sientes que podrías ajustar alguna categoría para avanzar hacia ese segundo mes?",
+        modules: ["RESERVA_EMERGENCIA_XAI"],
+        estadio: "asegurar"
+      };
+    }
+
+    if (meses >= 2 && meses <= 5) {
+      return {
+        reply:
+          `Muy bien, tienes **${meses} meses de reserva**. Eso ya te da buena estabilidad. 👍\n\n` +
+          "Si te interesa, podemos explorar cómo consolidar tu reserva y empezar a trabajar metas de ahorro más grandes.\n\n" +
+          "¿Quieres avanzar hacia tus metas o reforzar primero este fondo?",
+        modules: ["RESERVA_EMERGENCIA_XAI"],
+        estadio: "asegurar"
+      };
+    }
+
+    if (meses >= 6) {
+      return {
+        reply:
+          `Excelente, tener **${meses} meses de reserva** te pone en una posición muy sólida. 💪\n\n` +
+          "Desde este punto el enfoque suele pasar a metas grandes: ahorro anual, invertir a largo plazo, o metas específicas como viaje, casa o retiro.\n\n" +
+          "¿Te gustaría trabajar en alguna meta concreta?",
+        modules: ["RESERVA_EMERGENCIA_XAI"],
+        estadio: "acumular"
+      };
+    }
+  }
+}
+
 
     // ---------------------------------------------
     // MEMORIA SIMPLE – METAS_FINANCIERAS_XAI
