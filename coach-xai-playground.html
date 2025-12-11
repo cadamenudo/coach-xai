@@ -505,6 +505,61 @@ function mockCoachXai(userMessage) {
         sendBtn.innerHTML = '<span class="icon">➤</span> Enviar';
       }
     });
+  // … aquí ya están tus funciones existentes (mockCoachXai, sendMessage, etc.) …
+
+  // ==============================
+  //  BLOQUE NUEVO: CARGAR MÓDULOS
+  // ==============================
+
+  const XAI_GITHUB_RAW_BASE = "https://raw.githubusercontent.com/cadamenudo/coach-xai/main";
+
+  const XAI_MODULE_PATHS = {
+    "RESERVA_EMERGENCIA_XAI": "MODULES/RESERVA_EMERGENCIA_XAI.md",
+    "METAS_FINANCIERAS_XAI": "MODULES/METAS_FINANCIERAS_XAI.md",
+    "GASTOS_DESVIACIONES_XAI": "MODULES/GASTOS_DESVIACIONES_XAI.md",
+    "SUPERAVIT_DEFICIT_XAI": "MODULES/SUPERAVIT_DEFICIT_XAI.md",
+    "DEUDAS_XAI": "MODULES/DEUDAS_XAI.md",
+    "ESTADO_FINANCIERO_XAI": "MODULES/ESTADO_FINANCIERO_XAI.md"
+  };
+
+  async function loadXaiModule(key) {
+    const viewer = document.getElementById("module-viewer");
+    const status = document.getElementById("module-status");
+
+    if (!viewer || !status) return;
+
+    if (!key) {
+      status.textContent = "";
+      viewer.textContent = "Selecciona un módulo para ver aquí su contenido en bruto.";
+      return;
+    }
+
+    const path = XAI_MODULE_PATHS[key];
+    if (!path) {
+      status.textContent = "Módulo no encontrado en el mapa.";
+      viewer.textContent = "";
+      return;
+    }
+
+    const url = `${XAI_GITHUB_RAW_BASE}/${path}`;
+
+    status.textContent = "Cargando módulo...";
+    viewer.textContent = "";
+
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) {
+        throw new Error("Error HTTP " + resp.status);
+      }
+      const text = await resp.text();
+      viewer.textContent = text;
+      status.textContent = `Módulo cargado: ${key}`;
+    } catch (err) {
+      console.error(err);
+      status.textContent = "Hubo un problema cargando el módulo.";
+      viewer.textContent = String(err);
+    }
+  }
   </script>
   <hr style="margin: 2rem 0; border: none; border-top: 1px solid #e5e7eb;">
 
