@@ -506,5 +506,39 @@ function mockCoachXai(userMessage) {
       }
     });
   </script>
+  <hr style="margin: 2rem 0; border: none; border-top: 1px solid #e5e7eb;">
+
+<section id="kb-panel" style="max-width: 960px; margin: 0 auto 40px auto; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+  <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">
+    🔎 Explorar módulos del Knowledge Base
+  </h2>
+  <p style="font-size: 0.9rem; color: #6b7280; margin-bottom: 1rem;">
+    Selecciona un módulo para ver el contenido real del repositorio Coach Xai (archivos .md en <code>/MODULES</code>).
+  </p>
+
+  <div style="display: flex; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap;">
+    <label for="module-select" style="font-size: 0.9rem;">Módulo:</label>
+    <select id="module-select"
+            onchange="loadXaiModule(this.value)"
+            style="padding: 0.35rem 0.5rem; border-radius: 0.5rem; border: 1px solid #d1d5db; font-size: 0.9rem;">
+      <option value="">— Selecciona un módulo —</option>
+      <option value="RESERVA_EMERGENCIA_XAI">Reserva de emergencia</option>
+      <option value="METAS_FINANCIERAS_XAI">Metas financieras</option>
+      <option value="GASTOS_DESVIACIONES_XAI">Gastos y desviaciones</option>
+      <option value="SUPERAVIT_DEFICIT_XAI">Superávit / Déficit</option>
+      <option value="DEUDAS_XAI">Deudas</option>
+      <option value="ESTADO_FINANCIERO_XAI">Estado financiero general</option>
+    </select>
+
+    <span id="module-status" style="font-size: 0.8rem; color: #6b7280;"></span>
+  </div>
+
+  <div style="border-radius: 0.75rem; border: 1px solid #e5e7eb; background: #f9fafb; padding: 0.75rem; max-height: 320px; overflow: auto;">
+    <pre id="module-viewer"
+         style="white-space: pre-wrap; font-size: 0.8rem; line-height: 1.4; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; margin: 0;">
+Selecciona un módulo para ver aquí su contenido en bruto.
+    </pre>
+  </div>
+</section>
 </body>
 </html>
