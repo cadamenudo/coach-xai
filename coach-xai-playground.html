@@ -188,7 +188,7 @@
     <main id="chat-body" class="chat-body">
       <div class="meta coach">Coach Xai</div>
       <div class="message coach">
-        Mi gente, bienvenidos. 👋  
+        Bienvenido. 👋  
         Este es un modo demo para probar cómo se vería la conversación con el coach.  
         Escríbeme cómo está tu situación con el dinero o qué te preocupa ahora mismo y probamos paso a paso.
       </div>
@@ -207,11 +207,98 @@
     </form>
   </div>
 
+  <hr style="margin: 2rem 0; border: none; border-top: 1px solid #e5e7eb;">
+
+  <section id="kb-panel" style="max-width: 960px; margin: 0 auto 40px auto; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+    <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">
+      🔎 Explorar módulos del Knowledge Base
+    </h2>
+    <p style="font-size: 0.9rem; color: #6b7280; margin-bottom: 1rem;">
+      Selecciona un módulo para ver el contenido real del repositorio Coach Xai (archivos .md en <code>/MODULES</code>).
+    </p>
+
+    <div style="display: flex; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap;">
+      <label for="module-select" style="font-size: 0.9rem;">Módulo:</label>
+      <select id="module-select"
+              onchange="loadXaiModule(this.value)"
+              style="padding: 0.35rem 0.5rem; border-radius: 0.5rem; border: 1px solid #d1d5db; font-size: 0.9rem;">
+        <option value="">— Selecciona un módulo —</option>
+
+        <option value="RESERVA_EMERGENCIA_XAI">Reserva de emergencia</option>
+        <option value="METAS_FINANCIERAS_XAI">Metas financieras</option>
+        <option value="GASTOS_DESVIACIONES_XAI">Gastos y desviaciones</option>
+        <option value="SUPERAVIT_DEFICIT_XAI">Superávit / Déficit</option>
+        <option value="DEUDAS_XAI">Deudas</option>
+        <option value="ESTADO_FINANCIERO_XAI">Estado financiero general</option>
+
+        <option value="RETIRO_VALOR_OBJETIVO_XAI">Retiro – valor objetivo</option>
+        <option value="RATIOS_FINANCIEROS_XAI">Ratios financieros</option>
+        <option value="AHORRO_EDUCATIVO_XAI">Ahorro educativo</option>
+        <option value="AUTO_COMPRA_XAI">Compra de auto</option>
+        <option value="COMPRA_CASA_XAI">Compra de casa</option>
+        <option value="HERENCIA_CHECKLIST_XAI">Herencia – checklist</option>
+        <option value="HEURISTICAS_TEST_XAI">Test de heurísticas</option>
+        <option value="INTERES_COMPUESTO_XAI">Interés compuesto</option>
+        <option value="INVENTARIO_DEUDAS_XAI">Inventario de deudas</option>
+      </select>
+
+      <span id="module-status" style="font-size: 0.8rem; color: #6b7280;"></span>
+    </div>
+
+    <div style="border-radius: 0.75rem; border: 1px solid #e5e7eb; background: #f9fafb; padding: 0.75rem; max-height: 320px; overflow: auto;">
+      <pre id="module-viewer"
+           style="white-space: pre-wrap; font-size: 0.8rem; line-height: 1.4; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; margin: 0;">
+Selecciona un módulo para ver aquí su contenido en bruto.
+      </pre>
+    </div>
+  </section>
+
   <script>
     const chatBody = document.getElementById("chat-body");
     const chatForm = document.getElementById("chat-form");
     const chatInput = document.getElementById("chat-input");
     const sendBtn = document.getElementById("send-btn");
+
+    // Módulo seleccionado actualmente
+    let activeModuleKey = "";
+
+    const XAI_MODULE_LABELS = {
+      "RESERVA_EMERGENCIA_XAI":    "Reserva de emergencia",
+      "METAS_FINANCIERAS_XAI":     "Metas financieras",
+      "GASTOS_DESVIACIONES_XAI":   "Gastos y desviaciones",
+      "SUPERAVIT_DEFICIT_XAI":     "Superávit / Déficit",
+      "DEUDAS_XAI":                "Deudas",
+      "ESTADO_FINANCIERO_XAI":     "Estado financiero general",
+      "RETIRO_VALOR_OBJETIVO_XAI": "Retiro – valor objetivo",
+      "RATIOS_FINANCIEROS_XAI":    "Ratios financieros",
+      "AHORRO_EDUCATIVO_XAI":      "Ahorro educativo",
+      "AUTO_COMPRA_XAI":           "Compra de auto",
+      "COMPRA_CASA_XAI":           "Compra de casa",
+      "HERENCIA_CHECKLIST_XAI":    "Herencia – checklist",
+      "HEURISTICAS_TEST_XAI":      "Test de heurísticas",
+      "INTERES_COMPUESTO_XAI":     "Interés compuesto",
+      "INVENTARIO_DEUDAS_XAI":     "Inventario de deudas"
+    };
+
+    const XAI_GITHUB_RAW_BASE = "https://raw.githubusercontent.com/cadamenudo/coach-xai/main";
+
+    const XAI_MODULE_PATHS = {
+      "RESERVA_EMERGENCIA_XAI": "MODULES/RESERVA_EMERGENCIA_XAI.md",
+      "METAS_FINANCIERAS_XAI": "MODULES/METAS_FINANCIERAS_XAI.md",
+      "GASTOS_DESVIACIONES_XAI": "MODULES/GASTOS_DESVIACIONES_XAI.md",
+      "SUPERAVIT_DEFICIT_XAI": "MODULES/SUPERAVIT_DEFICIT_XAI.md",
+      "DEUDAS_XAI": "MODULES/DEUDAS_XAI.md",
+      "ESTADO_FINANCIERO_XAI": "MODULES/ESTADO_FINANCIERO_XAI.md",
+      "RETIRO_VALOR_OBJETIVO_XAI": "MODULES/RETIRO_VALOR_OBJETIVO_XAI.md",
+      "RATIOS_FINANCIEROS_XAI": "MODULES/RATIOS_FINANCIEROS_XAI.md",
+      "AHORRO_EDUCATIVO_XAI": "MODULES/AHORRO_EDUCATIVO_XAI.md",
+      "AUTO_COMPRA_XAI": "MODULES/AUTO_COMPRA_XAI.md",
+      "COMPRA_CASA_XAI": "MODULES/COMPRA_CASA_XAI.md",
+      "HERENCIA_CHECKLIST_XAI": "MODULES/HERENCIA_CHECKLIST_XAI.md",
+      "HEURISTICAS_TEST_XAI": "MODULES/HEURISTICAS_TEST_XAI.md",
+      "INTERES_COMPUESTO_XAI": "MODULES/INTERES_COMPUESTO_XAI.md",
+      "INVENTARIO_DEUDAS_XAI": "MODULES/INVENTARIO_DEUDAS_XAI.md"
+    };
 
     function appendMessage(text, role) {
       const meta = document.createElement("div");
@@ -227,255 +314,279 @@
       chatBody.scrollTop = chatBody.scrollHeight;
     }
 
-function mockCoachXai(userMessage) {
-  const raw = userMessage.trim();
-  const text = raw.toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
+    function mockCoachXai(userMessage, moduleKey) {
+      const raw = userMessage.trim();
+      const text = raw.toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
 
-  // Utilidad: elegir una frase al azar
-  function pick(arr) {
-    return arr[Math.floor(Math.random() * arr.length)];
-  }
-
-  // -----------------------------
-  // 1) DETECCIÓN DE EMOCIONES
-  // -----------------------------
-  const emociones = [
-    "estres", "preocup", "ansio", "frustra",
-    "cansad", "mal", "abrumad", "agotad", "triste"
-  ];
-  const detectaEmocion = emociones.some(e => text.includes(e));
-
-  if (detectaEmocion) {
-    const aperturas = [
-      "Gracias por compartir cómo te sientes. Ese ya es un paso importante. 🙏",
-      "Aprecio que seas sincero con cómo te estás sintiendo, eso cuenta mucho. 🙏",
-      "Te agradezco que lo digas tal cual. Hablar de esto ya es avanzar. 🙏"
-    ];
-
-    const cuerpos = [
-      "Con el dinero es normal sentirse así a veces. No estás solo en esto.",
-      "La presión financiera es real, y es válido sentirse cargado. Aquí vamos a poner orden poco a poco.",
-      "Lo que sientes tiene sentido. Muchas personas pasan por lo mismo cuando miran sus números."
-    ];
-
-    return (
-      pick(aperturas) + "\n\n" +
-      pick(cuerpos) + " " +
-      "Vamos paso a paso: ¿qué parte de tu situación te pesa más ahora mismo: gastos, deudas, ahorro o alguna meta específica?"
-    );
-  }
-
-  // -----------------------------
-  // 2) SALUDO CORTO
-  // -----------------------------
-  const isShort = text.length <= 40;
-  const isGreeting = /\b(hola|buenas|hey|saludos|que tal|qué tal)\b/.test(text);
-
-  if (isGreeting && isShort) {
-    const lineas = [
-      "Qué bueno verte por aquí. 👋",
-      "Me alegra que te pases por aquí. 👋",
-      "Bienvenido a este espacio para ver tu dinero con más calma. 👋"
-    ];
-    const segundas = [
-      "Soy Coach Xai y estoy aquí para ayudarte a entender tus números sin juicio, paso a paso.",
-      "Soy Coach Xai. Mi trabajo es ayudarte a organizar lo que entra, lo que sale y tus metas.",
-      "Soy Coach Xai y te acompaño a ver tu dinero con claridad, sin regaños y con pasos pequeños."
-    ];
-    const cierres = [
-      "Cuéntame, ¿qué te gustaría revisar primero: gastos, deudas, ahorro, ingresos o alguna meta?",
-      "Para empezar, dime: ¿te preocupa más lo que gastas, lo que debes o lo que no estás ahorrando?",
-      "Arranquemos por lo básico: ¿quieres empezar por gastos, deudas, ahorro o metas?"
-    ];
-
-    return pick(lineas) + "\n\n" + pick(segundas) + " " + pick(cierres);
-  }
-
-  // -----------------------------
-  // 3) FRASES COMPLETAS CLAVE
-  // -----------------------------
-  const frases = {
-    deficit: [
-      "gasto mas de lo que gano", "gasto más de lo que gano",
-      "no me alcanza", "no llego", "llego justo", "llego a penas", "llego a penas"
-    ],
-    deudaAlta: [
-      "tengo mucha deuda", "mucha deuda", "demasiada deuda",
-      "solo pago los minimos", "solo pago mínimos", "tarjetas al tope"
-    ],
-    sinAhorro: [
-      "no ahorro", "no puedo ahorrar", "no me queda para ahorrar"
-    ],
-    sinReserva: [
-      "no tengo reserva", "no tengo fondo", "no tengo emergencia"
-    ]
-  };
-
-  for (const key in frases) {
-    if (frases[key].some(f => text.includes(f))) {
-      switch (key) {
-        case "deficit":
-          return (
-            "Cuando lo que sale es más de lo que entra, el objetivo número uno es claridad.\n\n" +
-            "No hace falta cambiar todo a la vez. Empecemos por algo muy concreto: elegir una sola categoría (por ejemplo, comidas fuera o suscripciones) y ver cuánto se está yendo ahí.\n\n" +
-            "Con ese primer paso ya empezamos a recuperar control."
-          );
-        case "deudaAlta":
-          return (
-            "La deuda se puede sentir como una mochila pesada, y es normal que agote.\n\n" +
-            "Antes de pensar en soluciones grandes, el siguiente paso es entender bien tu pago mensual total y cuánto de eso son tarjetas versus otros préstamos.\n\n" +
-            "¿Dirías que el mayor peso viene de tarjetas, préstamos personales o una mezcla de ambos?"
-          );
-        case "sinAhorro":
-          return (
-            "No eres la única persona a la que le pasa. Lo importante es cómo lo manejamos a partir de hoy.\n\n" +
-            "Mi sugerencia es empezar muy pequeño: identificar una sola fuga de gasto donde puedas recuperar un poco cada mes para convertirlo en ahorro automático.\n\n" +
-            "¿Hay alguna categoría que sospeches que podríamos revisar primero?"
-          );
-        case "sinReserva":
-          return (
-            "La reserva de emergencia da mucha tranquilidad, pero se construye poco a poco.\n\n" +
-            "En vez de pensar en el número completo, enfoquémonos en el primer tramo: llegar al primer mes de gastos esenciales cubiertos.\n\n" +
-            "¿Cómo sientes hoy tus gastos esenciales: muy ajustados, manejables o sin revisar?"
-          );
+      function pick(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
       }
+
+      // 1) Emociones
+      const emociones = [
+        "estres", "preocup", "ansio", "frustra",
+        "cansad", "mal", "abrumad", "agotad", "triste"
+      ];
+      const detectaEmocion = emociones.some(e => text.includes(e));
+
+      if (detectaEmocion) {
+        const aperturas = [
+          "Gracias por compartir cómo te sientes. Ese ya es un paso importante. 🙏",
+          "Aprecio que seas sincero con cómo te estás sintiendo, eso cuenta mucho. 🙏",
+          "Te agradezco que lo digas tal cual. Hablar de esto ya es avanzar. 🙏"
+        ];
+
+        const cuerpos = [
+          "Con el dinero es normal sentirse así a veces. No estás solo en esto.",
+          "La presión financiera es real, y es válido sentirse cargado. Aquí vamos a poner orden poco a poco.",
+          "Lo que sientes tiene sentido. Muchas personas pasan por lo mismo cuando miran sus números."
+        ];
+
+        return (
+          pick(aperturas) + "\n\n" +
+          pick(cuerpos) + " " +
+          "Vamos paso a paso: ¿qué parte de tu situación te pesa más ahora mismo: gastos, deudas, ahorro o alguna meta específica?"
+        );
+      }
+
+      // 2) Saludo corto
+      const isShort = text.length <= 40;
+      const isGreeting = /\b(hola|buenas|hey|saludos|que tal|qué tal)\b/.test(text);
+
+      if (isGreeting && isShort) {
+        const lineas = [
+          "Qué bueno verte por aquí. 👋",
+          "Me alegra que te pases por aquí. 👋",
+          "Bienvenido a este espacio para ver tu dinero con más calma. 👋"
+        ];
+        const segundas = [
+          "Soy Coach Xai y estoy aquí para ayudarte a entender tus números sin juicio, paso a paso.",
+          "Soy Coach Xai. Mi trabajo es ayudarte a organizar lo que entra, lo que sale y tus metas.",
+          "Soy Coach Xai y te acompaño a ver tu dinero con claridad, sin regaños y con pasos pequeños."
+        ];
+        const cierres = [
+          "Cuéntame, ¿qué te gustaría revisar primero: gastos, deudas, ahorro, ingresos o alguna meta?",
+          "Para empezar, dime: ¿te preocupa más lo que gastas, lo que debes o lo que no estás ahorrando?",
+          "Arranquemos por lo básico: ¿quieres empezar por gastos, deudas, ahorro o metas?"
+        ];
+
+        return pick(lineas) + "\n\n" + pick(segundas) + " " + pick(cierres);
+      }
+
+      // 3) Frases clave
+      const frases = {
+        deficit: [
+          "gasto mas de lo que gano", "gasto más de lo que gano",
+          "no me alcanza", "no llego", "llego justo", "llego a penas", "llego a penas"
+        ],
+        deudaAlta: [
+          "tengo mucha deuda", "mucha deuda", "demasiada deuda",
+          "solo pago los minimos", "solo pago mínimos", "tarjetas al tope"
+        ],
+        sinAhorro: [
+          "no ahorro", "no puedo ahorrar", "no me queda para ahorrar"
+        ],
+        sinReserva: [
+          "no tengo reserva", "no tengo fondo", "no tengo emergencia"
+        ]
+      };
+
+      for (const key in frases) {
+        if (frases[key].some(f => text.includes(f))) {
+          switch (key) {
+            case "deficit":
+              return (
+                "Cuando lo que sale es más de lo que entra, el objetivo número uno es claridad.\n\n" +
+                "No hace falta cambiar todo a la vez. Empecemos por algo muy concreto: elegir una sola categoría (por ejemplo, comidas fuera o suscripciones) y ver cuánto se está yendo ahí.\n\n" +
+                "Con ese primer paso ya empezamos a recuperar control."
+              );
+            case "deudaAlta":
+              return (
+                "La deuda se puede sentir como una mochila pesada, y es normal que agote.\n\n" +
+                "Antes de pensar en soluciones grandes, el siguiente paso es entender bien tu pago mensual total y cuánto de eso son tarjetas versus otros préstamos.\n\n" +
+                "¿Dirías que el mayor peso viene de tarjetas, préstamos personales o una mezcla de ambos?"
+              );
+            case "sinAhorro":
+              return (
+                "No eres la única persona a la que le pasa. Lo importante es cómo lo manejamos a partir de hoy.\n\n" +
+                "Mi sugerencia es empezar muy pequeño: identificar una sola fuga de gasto donde puedas recuperar un poco cada mes para convertirlo en ahorro automático.\n\n" +
+                "¿Hay alguna categoría que sospeches que podríamos revisar primero?"
+              );
+            case "sinReserva":
+              return (
+                "La reserva de emergencia da mucha tranquilidad, pero se construye poco a poco.\n\n" +
+                "En vez de pensar en el número completo, enfoquémonos en el primer tramo: llegar al primer mes de gastos esenciales cubiertos.\n\n" +
+                "¿Cómo sientes hoy tus gastos esenciales: muy ajustados, manejables o sin revisar?"
+              );
+          }
+        }
+      }
+
+      // 4) Intención + meta específica
+      let foco = null;
+      let metaEspecifica = null;
+
+      if (text.includes("viaje") || text.includes("vacacion")) metaEspecifica = "un viaje";
+      if (text.includes("carro") || text.includes("auto")) metaEspecifica = "un carro";
+      if (text.includes("hijo") || text.includes("universidad") || text.includes("colegio")) metaEspecifica = "la educación de tus hijos";
+
+      if (text.includes("gasto")) foco = "tus gastos del mes";
+      if (text.includes("deuda") || text.includes("tarjeta")) foco = "tus deudas y pagos mensuales";
+      if (text.includes("reserva") || text.includes("emergencia")) foco = "tu liquidez y tu fondo de emergencia";
+      if (text.includes("ahorro") || text.includes("guardar")) foco = "tu capacidad de ahorro";
+      if (text.includes("ingreso") || text.includes("trabajo")) foco = "tus ingresos";
+      if (text.includes("meta") || text.includes("objetivo")) foco = "tus metas financieras";
+      if (text.includes("casa") || text.includes("propiedad")) foco = "tu meta de comprar casa";
+      if (text.includes("retiro") || text.includes("jubil")) foco = "tu meta de retiro";
+
+      // 5) Estadio estimado
+      let estadio = "asegurar";
+
+      const hayDeficit = frases.deficit.some(f => text.includes(f));
+      const hablaDeDeudas = text.includes("deuda") || text.includes("tarjeta");
+      const hablaDeMetas = text.includes("meta") || metaEspecifica !== null || text.includes("retiro");
+
+      if (hayDeficit) {
+        estadio = "sobreviviendo";
+      } else if (hablaDeDeudas && !hablaDeMetas) {
+        estadio = "asegurar";
+      } else if (hablaDeMetas || text.includes("ahorro")) {
+        estadio = "acumular";
+      }
+
+      // 6) Respuesta adaptada
+      if (foco) {
+        const intro = pick([
+          "Gracias por compartir esto.",
+          "Bien que lo pongas sobre la mesa.",
+          "Es muy útil que lo digas con esta claridad."
+        ]);
+
+        const contexto = `Por lo que comentas, ahora mismo el enfoque principal está en **${foco}**.`;
+
+        const mensajeEstadio = {
+          sobreviviendo:
+            "En esta etapa la prioridad es detener el descontrol y recuperar un poco de aire. No vamos a intentar arreglar todo a la vez, solo dar un primer paso claro.",
+          asegurar:
+            "Estás en un punto donde ordenar deudas, liquidez y hábitos puede hacer una gran diferencia en poco tiempo.",
+          acumular:
+            "Parece que ya tienes cierta base y ahora la conversación empieza a ir más hacia metas y acumulación, siempre cuidando tu liquidez."
+        }[estadio];
+
+        let preguntaCierre = "¿Te parece si empezamos revisando una sola parte de esa área para ver qué se puede ajustar con calma?";
+
+        if (foco === "tus gastos del mes") {
+          preguntaCierre = "Si tuvieras que escoger una sola categoría de gasto para revisar esta semana, ¿cuál sería?";
+        } else if (foco === "tus deudas y pagos mensuales") {
+          preguntaCierre = "¿Sabes aproximadamente cuánto estás pagando al mes entre todas tus deudas?";
+        } else if (foco === "tu liquidez y tu fondo de emergencia") {
+          preguntaCierre = "¿Tienes idea de cuántos meses de gastos podrías cubrir hoy si mañana se detuviera tu ingreso?";
+        } else if (foco === "tu capacidad de ahorro") {
+          preguntaCierre = "¿Prefieres que veamos primero cómo aumentar un poco tu ahorro o cómo hacerlo más constante?";
+        } else if (foco === "tus ingresos") {
+          preguntaCierre = "¿Lo que más te preocupa es que el ingreso es bajo, inestable o que no se está administrando bien?";
+        } else if (foco === "tus metas financieras") {
+          preguntaCierre = "Si tuvieras que elegir una meta principal para los próximos 12 meses, ¿cuál sería?";
+        } else if (foco === "tu meta de comprar casa") {
+          preguntaCierre = "Para esa meta, es clave ver primero deuda, reserva y estabilidad de ingreso. ¿Te gustaría que empecemos por ahí?";
+        } else if (foco === "tu meta de retiro") {
+          preguntaCierre = "¿Quieres que empecemos por entender en qué etapa estás hoy: sobreviviendo, asegurando o acumulando?";
+        }
+
+        const metaExtra = metaEspecifica
+          ? `\n\nMencionas también ${metaEspecifica}. Esa meta se puede trabajar mejor cuando tengamos clara tu base de gastos, deudas y ahorro.`
+          : "";
+
+        let referenciaModulo = "";
+        if (moduleKey && XAI_MODULE_LABELS[moduleKey]) {
+          referenciaModulo =
+            `\n\nEsto que describes se conecta bien con el módulo **${XAI_MODULE_LABELS[moduleKey]}**, ` +
+            "que está pensado justo para trabajar este tipo de situación de forma estructurada.";
+        }
+
+        return (
+          intro + "\n\n" +
+          contexto + "\n\n" +
+          mensajeEstadio + metaExtra + referenciaModulo + "\n\n" +
+          "Un buen siguiente paso es enfocarnos en un solo punto, no en todo al mismo tiempo. " +
+          preguntaCierre
+        );
+      }
+
+      // 7) Respuesta general
+      const generales = [
+        "Gracias por escribirme.",
+        "Me alegra que lo estés hablando.",
+        "Buen paso el que estás dando al ponerlo en palabras."
+      ];
+
+      let referenciaModuloGeneral = "";
+      if (moduleKey && XAI_MODULE_LABELS[moduleKey]) {
+        referenciaModuloGeneral =
+          `\n\nVeo que tienes abierto el módulo **${XAI_MODULE_LABELS[moduleKey]}**. ` +
+          "Podemos usarlo como guía mientras aclaras si esto va más por gastos, deudas, ahorro, ingresos o metas.";
+      }
+
+      return (
+        pick(generales) +
+        " Para ayudarte mejor, dime si lo que comentas tiene más que ver con gastos, deudas, ahorro, ingresos o alguna meta concreta.\n\n" +
+        "Con eso puedo guiarte con pasos pequeños y claros." +
+        referenciaModuloGeneral
+      );
     }
-  }
 
-  // -----------------------------
-  // 4) INTENCIÓN FINANCIERA + META ESPECÍFICA
-  // -----------------------------
-  let foco = null;
-  let metaEspecifica = null;
-
-  if (text.includes("viaje") || text.includes("vacacion")) metaEspecifica = "un viaje";
-  if (text.includes("carro") || text.includes("auto")) metaEspecifica = "un carro";
-  if (text.includes("hijo") || text.includes("universidad") || text.includes("colegio")) metaEspecifica = "la educación de tus hijos";
-
-  if (text.includes("gasto")) foco = "tus gastos del mes";
-  if (text.includes("deuda") || text.includes("tarjeta")) foco = "tus deudas y pagos mensuales";
-  if (text.includes("reserva") || text.includes("emergencia")) foco = "tu liquidez y tu fondo de emergencia";
-  if (text.includes("ahorro") || text.includes("guardar")) foco = "tu capacidad de ahorro";
-  if (text.includes("ingreso") || text.includes("trabajo")) foco = "tus ingresos";
-  if (text.includes("meta") || text.includes("objetivo")) foco = "tus metas financieras";
-  if (text.includes("casa") || text.includes("propiedad")) foco = "tu meta de comprar casa";
-  if (text.includes("retiro") || text.includes("jubil")) foco = "tu meta de retiro";
-
-  // -----------------------------
-  // 5) ESTADIO FINANCIERO ESTIMADO
-  // -----------------------------
-  let estadio = "asegurar"; // por defecto
-
-  const hayDeficit = frases.deficit.some(f => text.includes(f));
-  const hablaDeDeudas = text.includes("deuda") || text.includes("tarjeta");
-  const hablaDeMetas = text.includes("meta") || metaEspecifica !== null || text.includes("retiro");
-
-  if (hayDeficit) {
-    estadio = "sobreviviendo";
-  } else if (hablaDeDeudas && !hablaDeMetas) {
-    estadio = "asegurar";
-  } else if (hablaDeMetas || text.includes("ahorro")) {
-    estadio = "acumular";
-  }
-
-  // -----------------------------
-  // 6) RESPUESTA ADAPTADA AL FOCO + ESTADIO
-  // -----------------------------
-  if (foco) {
-    const intro = pick([
-      "Gracias por compartir esto.",
-      "Bien que lo pongas sobre la mesa.",
-      "Es muy útil que lo digas con esta claridad."
-    ]);
-
-    const contexto = `Por lo que comentas, ahora mismo el enfoque principal está en **${foco}**.`;
-
-    const mensajeEstadio = {
-      sobreviviendo:
-        "En esta etapa la prioridad es detener el descontrol y recuperar un poco de aire. No vamos a intentar arreglar todo a la vez, solo dar un primer paso claro.",
-      asegurar:
-        "Estás en un punto donde ordenar deudas, liquidez y hábitos puede hacer una gran diferencia en poco tiempo.",
-      acumular:
-        "Parece que ya tienes cierta base y ahora la conversación empieza a ir más hacia metas y acumulación, siempre cuidando tu liquidez."
-    }[estadio];
-
-    let preguntaCierre = "¿Te parece si empezamos revisando una sola parte de esa área para ver qué se puede ajustar con calma?";
-
-    if (foco === "tus gastos del mes") {
-      preguntaCierre = "Si tuvieras que escoger una sola categoría de gasto para revisar esta semana, ¿cuál sería?";
-    } else if (foco === "tus deudas y pagos mensuales") {
-      preguntaCierre = "¿Sabes aproximadamente cuánto estás pagando al mes entre todas tus deudas?";
-    } else if (foco === "tu liquidez y tu fondo de emergencia") {
-      preguntaCierre = "¿Tienes idea de cuántos meses de gastos podrías cubrir hoy si mañana se detuviera tu ingreso?";
-    } else if (foco === "tu capacidad de ahorro") {
-      preguntaCierre = "¿Prefieres que veamos primero cómo aumentar un poco tu ahorro o cómo hacerlo más constante?";
-    } else if (foco === "tus ingresos") {
-      preguntaCierre = "¿Lo que más te preocupa es que el ingreso es bajo, inestable o que no se está administrando bien?";
-    } else if (foco === "tus metas financieras") {
-      preguntaCierre = "Si tuvieras que elegir una meta principal para los próximos 12 meses, ¿cuál sería?";
-    } else if (foco === "tu meta de comprar casa") {
-      preguntaCierre = "Para esa meta, es clave ver primero deuda, reserva y estabilidad de ingreso. ¿Te gustaría que empecemos por ahí?";
-    } else if (foco === "tu meta de retiro") {
-      preguntaCierre = "¿Quieres que empecemos por entender en qué etapa estás hoy: sobreviviendo, asegurando o acumulando?";
-    }
-
-    const metaExtra = metaEspecifica
-      ? `\n\nMencionas también ${metaEspecifica}. Esa meta se puede trabajar mejor cuando tengamos clara tu base de gastos, deudas y ahorro.`
-      : "";
-
-    return (
-      intro + "\n\n" +
-      contexto + "\n\n" +
-      mensajeEstadio + metaExtra + "\n\n" +
-      "Un buen siguiente paso es enfocarnos en un solo punto, no en todo al mismo tiempo. " +
-      preguntaCierre
-    );
-  }
-
-  // -----------------------------
-  // 7) RESPUESTA GENERAL (NO ENTENDIÓ BIEN EL FOCO)
-  // -----------------------------
-  const generales = [
-    "Gracias por escribirme.",
-    "Me alegra que lo estés hablando.",
-    "Buen paso el que estás dando al ponerlo en palabras."
-  ];
-
-  return (
-    pick(generales) + " Para ayudarte mejor, dime si lo que comentas tiene más que ver con gastos, deudas, ahorro, ingresos o alguna meta concreta.\n\n" +
-    "Con eso puedo guiarte con pasos pequeños y claros."
-  );
-}
-
-
-
-    // 🔌 Aquí luego conectas con la API real de Coach Xai
     async function callCoachXaiAPI(userMessage) {
-      // TODO: reemplazar esto con un fetch a tu backend
-      // Ejemplo de cómo se vería:
-      /*
-      const response = await fetch("http://localhost:8000/xai", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: userMessage,
-          // aquí puedes incluir también un objeto con los datos
-          // financieros que la app le manda al coach
-          // data: { ingresoMensual: 3000, gastoMensual: 2800, ... }
-        })
-      });
-      const data = await response.json();
-      return data.reply; // asumir que el backend responde { reply: "texto del coach" }
-      */
-
-      // Por ahora usamos el mock:
+      // En el futuro: aquí iría el fetch al backend real.
       return new Promise((resolve) => {
         setTimeout(() => {
-          resolve(mockCoachXai(userMessage));
+          resolve(mockCoachXai(userMessage, activeModuleKey));
         }, 500);
       });
+    }
+
+    async function loadXaiModule(key) {
+      const viewer = document.getElementById("module-viewer");
+      const status = document.getElementById("module-status");
+
+      if (!viewer || !status) return;
+
+      if (!key) {
+        activeModuleKey = "";
+        status.textContent = "";
+        viewer.textContent = "Selecciona un módulo para ver aquí su contenido en bruto.";
+        return;
+      }
+
+      const path = XAI_MODULE_PATHS[key];
+      if (!path) {
+        status.textContent = "Módulo no encontrado en el mapa.";
+        viewer.textContent = "";
+        return;
+      }
+
+      const url = `${XAI_GITHUB_RAW_BASE}/${path}`;
+
+      activeModuleKey = key;
+      const etiqueta = XAI_MODULE_LABELS[key] || key;
+
+      status.textContent = `Cargando módulo: ${etiqueta}…`;
+      viewer.textContent = "";
+
+      try {
+        const resp = await fetch(url);
+        if (!resp.ok) {
+          throw new Error("Error HTTP " + resp.status);
+        }
+        const text = await resp.text();
+        viewer.textContent = text;
+        status.textContent = `Módulo cargado: ${etiqueta}`;
+      } catch (err) {
+        console.error(err);
+        status.textContent = "Hubo un problema cargando el módulo.";
+        viewer.textContent = String(err);
+      }
     }
 
     chatForm.addEventListener("submit", async (event) => {
@@ -495,8 +606,7 @@ function mockCoachXai(userMessage) {
         appendMessage(reply, "coach");
       } catch (err) {
         appendMessage(
-          "Mi gente, algo falló al intentar responder en modo demo. " +
-          "Revisa la conexión con el backend o vuelve a intentarlo.",
+          "Algo falló al intentar responder en modo demo. Revisa la conexión o vuelve a intentarlo.",
           "coach"
         );
         console.error(err);
@@ -505,105 +615,6 @@ function mockCoachXai(userMessage) {
         sendBtn.innerHTML = '<span class="icon">➤</span> Enviar';
       }
     });
-  // … aquí ya están tus funciones existentes (mockCoachXai, sendMessage, etc.) …
-
-  // ==============================
-  //  BLOQUE NUEVO: CARGAR MÓDULOS
-  // ==============================
-
-  const XAI_GITHUB_RAW_BASE = "https://raw.githubusercontent.com/cadamenudo/coach-xai/main";
-
-  const XAI_MODULE_PATHS = {
-    "RESERVA_EMERGENCIA_XAI": "MODULES/RESERVA_EMERGENCIA_XAI.md",
-    "METAS_FINANCIERAS_XAI": "MODULES/METAS_FINANCIERAS_XAI.md",
-    "RETIRO_VALOR_OBJETIVO_XAI": "MODULES/RETIRO_VALOR_OBJETIVO_XAI.md",
-    "RATIOS_FINANCIEROS_XAI": "MODULES/RATIOS_FINANCIEROS_XAI.md",
-    "AHORRO_EDUCATIVO_XAI": "MODULES/AHORRO_EDUCATIVO_XAI.md",
-    "AUTO_COMPRA_XAI": "MODULES/AUTO_COMPRA_XAI.md",
-    "COMPRA_CASA_XAI": "MODULES/COMPRA_CASA_XAI.md",
-    "HERENCIA_CHECKLIST_XAI": "MODULES/HERENCIA_CHECKLIST_XAI.md",
-    "HEURISTICAS_TEST_XAI": "MODULES/HEURISTICAS_TEST_XAI.md",
-    "INTERES_COMPUESTO_XAI": "MODULES/INTERES_COMPUESTO_XAI.md",
-    "INVENTARIO_DEUDAS_XAI": "MODULES/INVENTARIO_DEUDAS_XAI.md",
-  };
-
-  async function loadXaiModule(key) {
-    const viewer = document.getElementById("module-viewer");
-    const status = document.getElementById("module-status");
-
-    if (!viewer || !status) return;
-
-    if (!key) {
-      status.textContent = "";
-      viewer.textContent = "Selecciona un módulo para ver aquí su contenido en bruto.";
-      return;
-    }
-
-    const path = XAI_MODULE_PATHS[key];
-    if (!path) {
-      status.textContent = "Módulo no encontrado en el mapa.";
-      viewer.textContent = "";
-      return;
-    }
-
-    const url = `${XAI_GITHUB_RAW_BASE}/${path}`;
-
-    status.textContent = "Cargando módulo...";
-    viewer.textContent = "";
-
-    try {
-      const resp = await fetch(url);
-      if (!resp.ok) {
-        throw new Error("Error HTTP " + resp.status);
-      }
-      const text = await resp.text();
-      viewer.textContent = text;
-      status.textContent = `Módulo cargado: ${key}`;
-    } catch (err) {
-      console.error(err);
-      status.textContent = "Hubo un problema cargando el módulo.";
-      viewer.textContent = String(err);
-    }
-  }
   </script>
-  <hr style="margin: 2rem 0; border: none; border-top: 1px solid #e5e7eb;">
-
-<section id="kb-panel" style="max-width: 960px; margin: 0 auto 40px auto; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
-  <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">
-    🔎 Explorar módulos del Knowledge Base
-  </h2>
-  <p style="font-size: 0.9rem; color: #6b7280; margin-bottom: 1rem;">
-    Selecciona un módulo para ver el contenido real del repositorio Coach Xai (archivos .md en <code>/MODULES</code>).
-  </p>
-
-  <div style="display: flex; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap;">
-    <label for="module-select" style="font-size: 0.9rem;">Módulo:</label>
-    <select id="module-select"
-            onchange="loadXaiModule(this.value)"
-            style="padding: 0.35rem 0.5rem; border-radius: 0.5rem; border: 1px solid #d1d5db; font-size: 0.9rem;">
-      <option value="">— Selecciona un módulo —</option>
-  <option value="RESERVA_EMERGENCIA_XAI">Reserva de emergencia</option>
-  <option value="METAS_FINANCIERAS_XAI">Metas financieras</option>
-  <option value="RETIRO_VALOR_OBJETIVO_XAI">Retiro – valor objetivo</option>
-  <option value="RATIOS_FINANCIEROS_XAI">Ratios financieros</option>
-  <option value="AHORRO_EDUCATIVO_XAI">Ahorro educativo</option>
-  <option value="AUTO_COMPRA_XAI">Compra de auto</option>
-  <option value="COMPRA_CASA_XAI">Compra de casa</option>
-  <option value="HERENCIA_CHECKLIST_XAI">Herencia – checklist</option>
-  <option value="HEURISTICAS_TEST_XAI">Test de heurísticas</option>
-  <option value="INTERES_COMPUESTO_XAI">Interés compuesto</option>
-  <option value="INVENTARIO_DEUDAS_XAI">Inventario de deudas</option>
-    </select>
-
-    <span id="module-status" style="font-size: 0.8rem; color: #6b7280;"></span>
-  </div>
-
-  <div style="border-radius: 0.75rem; border: 1px solid #e5e7eb; background: #f9fafb; padding: 0.75rem; max-height: 320px; overflow: auto;">
-    <pre id="module-viewer"
-         style="white-space: pre-wrap; font-size: 0.8rem; line-height: 1.4; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; margin: 0;">
-Selecciona un módulo para ver aquí su contenido en bruto.
-    </pre>
-  </div>
-</section>
 </body>
 </html>
